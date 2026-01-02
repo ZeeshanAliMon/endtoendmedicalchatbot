@@ -1,0 +1,178 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>AI Chat</title>
+  <style>
+    body {
+      margin: 0;
+      font-family: Arial, Helvetica, sans-serif;
+      background: #e5ddd5;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      height: 100vh;
+    }
+
+    .chat-container {
+      width: 360px;
+      height: 640px;
+      background: #ece5dd;
+      display: flex;
+      flex-direction: column;
+      box-shadow: 0 0 10px rgba(0,0,0,0.2);
+    }
+
+    .chat-header {
+      background: #075e54;
+      color: white;
+      padding: 12px;
+      font-weight: bold;
+    }
+
+    .chat-messages {
+      flex: 1;
+      padding: 10px;
+      overflow-y: auto;
+      display: flex;
+      flex-direction: column;
+    }
+
+    .message {
+      max-width: 75%;
+      padding: 8px 10px;
+      margin-bottom: 8px;
+      border-radius: 6px;
+      font-size: 14px;
+      line-height: 1.4;
+      position: relative;
+    }
+
+    .user {
+      background: #dcf8c6;
+      margin-left: auto;
+      text-align: right;
+    }
+
+    .bot {
+      background: white;
+      margin-right: auto;
+      text-align: left;
+    }
+
+    .timestamp {
+      font-size: 10px;
+      color: gray;
+      position: absolute;
+      bottom: -14px;
+      right: 5px;
+    }
+
+    .typing {
+      font-size: 12px;
+      color: #555;
+      font-style: italic;
+      margin-bottom: 8px;
+    }
+
+    .chat-input {
+      display: flex;
+      padding: 8px;
+      background: #f0f0f0;
+    }
+
+    .chat-input input {
+      flex: 1;
+      padding: 8px;
+      border-radius: 20px;
+      border: none;
+      outline: none;
+    }
+
+    .chat-input button {
+      margin-left: 8px;
+      background: #075e54;
+      color: white;
+      border: none;
+      padding: 8px 14px;
+      border-radius: 50%;
+      cursor: pointer;
+    }
+  </style>
+</head>
+<body>
+
+  <div class="chat-container">
+    <div class="chat-header">Groq AI</div>
+    <div class="chat-messages" id="messages"></div>
+    <div class="chat-input">
+      <input id="input" type="text" placeholder="Type a message" />
+      <button onclick="sendMessage()">➤</button>
+    </div>
+  </div>
+
+  <script>
+    const messages = document.getElementById('messages');
+    const input = document.getElementById('input');
+    const sessionId = 'user-3';
+
+    function addMessage(text, type) {
+      const div = document.createElement('div');
+      div.className = 'message ' + type;
+      div.innerText = text;
+
+      const time = document.createElement('div');
+      time.className = 'timestamp';
+      const now = new Date();
+      time.innerText = now.getHours().toString().padStart(2,'0') + ':' + now.getMinutes().toString().padStart(2,'0');
+      div.appendChild(time);
+
+      messages.appendChild(div);
+      messages.scrollTop = messages.scrollHeight;
+    }
+
+    async function sendMessage() {
+      const text = input.value.trim();
+      if (!text) return;
+
+      addMessage(text, 'user');
+      input.value = '';
+
+      const typingDiv = document.createElement('div');
+      typingDiv.className = 'typing';
+      typingDiv.innerText = 'Groq AI is typing...';
+      messages.appendChild(typingDiv);
+      messages.scrollTop = messages.scrollHeight;
+
+      try {
+        const res = await fetch('http://127.0.0.1:8000/chat/', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json'
+          },
+          body: JSON.stringify({
+            chatInput: text,
+            sessionId: sessionId
+          })
+        });
+
+        if (!res.ok) throw new Error('Network response was not ok');
+
+        const data = await res.json();
+        messages.removeChild(typingDiv);
+        addMessage(data.reply || 'No response', 'bot');
+      } catch (error) {
+        messages.removeChild(typingDiv);
+        addMessage('Error: Could not reach server', 'bot');
+        console.error('Fetch error:', error);
+      }
+    }
+
+    input.addEventListener('keydown', e => {
+      if (e.key === 'Enter') sendMessage();
+    });
+  </script>
+
+</body>
+</html>
