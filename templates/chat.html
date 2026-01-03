@@ -115,8 +115,10 @@
   <script>
     const messages = document.getElementById('messages');
     const input = document.getElementById('input');
-    const sessionId = 'user-3';
-
+    // const sessionId = 'user-3';
+    const now = new Date();
+    const sessionId = now.getHours().toString().padStart(2,'0') + ':' + now.getMinutes().toString().padStart(2,'0');
+    
     function addMessage(text, type) {
       const div = document.createElement('div');
       div.className = 'message ' + type;
