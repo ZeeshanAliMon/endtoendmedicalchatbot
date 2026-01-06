@@ -64,7 +64,7 @@ docsearch = PineconeVectorStore.from_existing_index(
     index_name = index_name,
     embedding = embeddings
 )
-retriever = docsearch.as_retriever(search_type="similarity", search_kwargs={"k":3})
+retriever = docsearch.as_retriever(search_type="similarity", search_kwargs={"k":4})
 llm_store ={}
 def get_llm(session_id: str):
     if session_id not in llm_store:
